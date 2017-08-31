@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/Financial-Times/pac-annotations-mapper.svg?style=shield)]https://circleci.com/gh/Financial-Times/pac-annotations-mapper[![Coverage Status](https://coveralls.io/repos/github/Financial-Times/pac-annotations-mapper/badge.svg?branch=master)](https://coveralls.io/github/Financial-Times/pac-annotations-mapper?branch=master)
+
 # pac-annotations-mapper
 Mapper for transforming PAC annotations to UPP annotations
 
