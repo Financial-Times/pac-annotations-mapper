@@ -26,7 +26,7 @@ func (mc mockConsumer) Shutdown() {
 }
 
 func TestHappyHealthCheck(t *testing.T) {
-	hc := HealthCheck{"test-system-code","test-app-name","test-app-desc",mockConsumer{nil}}
+	hc := NewHealthCheck("test-system-code","test-app-name","test-app-desc", mockConsumer{nil})
 
 	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
 	w := httptest.NewRecorder()

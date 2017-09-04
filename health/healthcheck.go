@@ -31,7 +31,7 @@ func (h *HealthCheck) Health() func(w http.ResponseWriter, r *http.Request) {
 		SystemCode:  h.appSystemCode,
 		Name:        h.appName,
 		Description: h.appDescription,
-		Checks:      []fthealth.Check{h.readQueueCheck()},
+		Checks:      h.Checks(),
 	}
 	return fthealth.Handler(hc)
 }
