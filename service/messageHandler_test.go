@@ -102,6 +102,59 @@ func TestMessageMapped(t *testing.T) {
 	assert.True(t, foundMentions, "expected mentions predicate was not found")
 }
 
+func TestPredicateValidation(t *testing.T) {
+	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
+	mp := &mockMessageProducer{}
+	mp.On("SendMessage", mock.AnythingOfType("kafka.FTMessage")).Return(nil)
+
+	service := NewAnnotationMapperService(whitelist, mp)
+
+	contentUuid := uuid.NewV4().String()
+	brandUuid := uuid.NewV4().String()
+	mentionsUuid := uuid.NewV4().String()
+	inbound := kafka.FTMessage{
+		Headers: map[string]string{
+			"Origin-System-Id": testSystemId,
+			"X-Request-Id":     testTxId,
+		},
+		Body: fmt.Sprintf(`{
+		"uuid":"%s",
+		"submittedBy":"test-user",
+		"annotations":[
+		    {
+		        "predicate":"%s",
+		        "id":"%s"
+		    },
+		    {
+		        "predicate":"%s",
+		        "id":"%s"
+		    }
+		]
+		}`, contentUuid,
+			hasBrand, brandUuid,
+			"http:///www.example.com/annotation/mentions", mentionsUuid),
+	}
+
+	err := service.HandleMessage(inbound)
+	assert.NoError(t, err)
+
+	mp.AssertExpectations(t)
+
+	require.Len(t, mp.received, 1, "messages sent to producer")
+
+	actual := mp.received[0]
+	assert.Equal(t, testTxId, actual.Headers["X-Request-Id"], "transaction_id should be propagated")
+
+	actualBody := ConceptAnnotations{}
+	json.NewDecoder(strings.NewReader(actual.Body)).Decode(&actualBody)
+
+	assert.Equal(t, contentUuid, actualBody.UUID, "content uuid")
+
+	actualAnnotations := actualBody.Annotations
+	assert.Len(t, actualAnnotations, 1, "annotations")
+	assert.Equal(t, brandUuid, actualAnnotations[0].Thing.ID, "brand annotation")
+}
+
 func TestSourceNonMatchingWhitelistIsIgnored(t *testing.T) {
 	whitelist := regexp.MustCompile(`"http://www\.example\.com/ft-system`)
 	mp := &mockMessageProducer{}

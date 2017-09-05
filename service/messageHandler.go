@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/Financial-Times/kafka-client-go/kafka"
@@ -12,6 +11,15 @@ import (
 )
 
 const messageTimestampDateFormat = "2006-01-02T15:04:05.000Z"
+
+var predicates = map[string]string{
+	"http://www.ft.com/ontology/classification/isClassifiedBy":"isClassifiedBy",
+	"http://www.ft.com/ontology/annotation/hasAuthor":"hasAuthor",
+	"http://www.ft.com/ontology/annotation/hasContributor":"hasContributor",
+	"http://www.ft.com/ontology/annotation/about":"about",
+	"http://www.ft.com/ontology/annotation/hasDisplayTag":"hasDisplayTag",
+	"http://www.ft.com/ontology/annotation/mentions":"mentions",
+}
 
 type AnnotationMapperService struct {
 	whitelist       *regexp.Regexp
@@ -44,7 +52,12 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 
 	annotations := []annotation{}
 	for _, value := range metadataPublishEvent.Annotations {
-		annotations = append(annotations, mapper.buildAnnotation(value))
+		ann := mapper.buildAnnotation(value)
+		if ann != nil {
+			annotations = append(annotations, *ann)
+		} else {
+			requestLog.WithField("metadata", value).Warn("metadata for an unsupported predicate was not mapped")
+		}
 	}
 
 	conceptAnnotations := ConceptAnnotations{UUID: metadataPublishEvent.UUID, Annotations: annotations}
@@ -66,10 +79,13 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 	return nil
 }
 
-func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnotation) annotation {
-	predicate := metadata.Predicate[strings.LastIndex(metadata.Predicate, "/")+1:]
-	thing := thing{ID: metadata.ConceptId, Predicate: predicate}
-	ann := annotation{Thing: thing}
+func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnotation) *annotation {
+	var ann *annotation
+
+	if predicate, found := predicates[metadata.Predicate]; found {
+		thing := thing{ID: metadata.ConceptId, Predicate: predicate}
+		ann = &annotation{Thing: thing}
+	}
 
 	return ann
 }
