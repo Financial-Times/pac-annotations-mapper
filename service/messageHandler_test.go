@@ -10,6 +10,8 @@ import (
 
 	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/satori/go.uuid"
+	log "github.com/sirupsen/logrus"
+	testLog "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -213,4 +215,22 @@ func TestMessageProducerError(t *testing.T) {
 	assert.EqualError(t, err, errmsg)
 
 	mp.AssertExpectations(t)
+}
+
+func TestNilWhitelistIsIgnoredWithErrorLog(t *testing.T) {
+	hook := testLog.NewGlobal()
+	mp := &mockMessageProducer{}
+	service := NewAnnotationMapperService(nil, mp)
+	inbound := kafka.FTMessage{
+		Headers: map[string]string{"Origin-System-Id": testSystemId},
+		Body:    `{"foo":"bar"}`,
+	}
+
+	actual := service.HandleMessage(inbound)
+	assert.NoError(t, actual)
+	mp.AssertExpectations(t)
+
+	actualLog := hook.LastEntry()
+	assert.Equal(t, "Skipping this message because the whitelist is invalid.", actualLog.Message, "log message")
+	assert.Equal(t, log.ErrorLevel, actualLog.Level, "log level")
 }
