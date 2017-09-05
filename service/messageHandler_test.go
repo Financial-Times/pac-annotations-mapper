@@ -126,7 +126,7 @@ func TestSyntacticallyInvalidJsonIsRejected(t *testing.T) {
 	}
 
 	actual := service.HandleMessage(inbound)
-	assert.Error(t, actual, "error message")
+	assert.Error(t, actual)
 	mp.AssertExpectations(t)
 }
 
@@ -157,7 +157,7 @@ func TestMessageProducerError(t *testing.T) {
 	}
 
 	err := service.HandleMessage(inbound)
-	assert.EqualError(t, err, errmsg, "error message")
+	assert.EqualError(t, err, errmsg)
 
 	mp.AssertExpectations(t)
 }
