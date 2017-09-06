@@ -64,9 +64,9 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 		}
 	}
 
-	conceptAnnotations := ConceptAnnotations{UUID: metadataPublishEvent.UUID, Annotations: annotations}
+	mappedAnnotations := MappedAnnotations{UUID: metadataPublishEvent.UUID, Annotations: annotations}
 
-	marshalledAnnotations, err := json.Marshal(conceptAnnotations)
+	marshalledAnnotations, err := json.Marshal(mappedAnnotations)
 	if err != nil {
 		requestLog.Error("Error marshalling the concept annotations", err)
 		return err
@@ -87,8 +87,8 @@ func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnot
 	var ann *annotation
 
 	if predicate, found := predicates[metadata.Predicate]; found {
-		thing := thing{ID: metadata.ConceptId, Predicate: predicate}
-		ann = &annotation{Thing: thing}
+		concept := concept{ID: metadata.ConceptId, Predicate: predicate}
+		ann = &annotation{Concept: concept}
 	}
 
 	return ann

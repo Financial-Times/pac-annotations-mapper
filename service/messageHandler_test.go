@@ -79,7 +79,7 @@ func TestMessageMapped(t *testing.T) {
 	actual := mp.received[0]
 	assert.Equal(t, testTxId, actual.Headers["X-Request-Id"], "transaction_id should be propagated")
 
-	actualBody := ConceptAnnotations{}
+	actualBody := MappedAnnotations{}
 	json.NewDecoder(strings.NewReader(actual.Body)).Decode(&actualBody)
 
 	assert.Equal(t, contentUuid, actualBody.UUID, "content uuid")
@@ -90,13 +90,13 @@ func TestMessageMapped(t *testing.T) {
 	foundBrand := false
 	foundMentions := false
 	for _, ann := range actualAnnotations {
-		switch ann.Thing.Predicate {
+		switch ann.Concept.Predicate {
 		case "isClassifiedBy":
-			assert.Equal(t, brandUuid, ann.Thing.ID, "brand annotation")
+			assert.Equal(t, brandUuid, ann.Concept.ID, "brand annotation")
 			foundBrand = true
 
 		case "mentions":
-			assert.Equal(t, mentionsUuid, ann.Thing.ID, "mentions annotation")
+			assert.Equal(t, mentionsUuid, ann.Concept.ID, "mentions annotation")
 			foundMentions = true
 		}
 	}
@@ -147,14 +147,14 @@ func TestPredicateValidation(t *testing.T) {
 	actual := mp.received[0]
 	assert.Equal(t, testTxId, actual.Headers["X-Request-Id"], "transaction_id should be propagated")
 
-	actualBody := ConceptAnnotations{}
+	actualBody := MappedAnnotations{}
 	json.NewDecoder(strings.NewReader(actual.Body)).Decode(&actualBody)
 
 	assert.Equal(t, contentUuid, actualBody.UUID, "content uuid")
 
 	actualAnnotations := actualBody.Annotations
 	assert.Len(t, actualAnnotations, 1, "annotations")
-	assert.Equal(t, brandUuid, actualAnnotations[0].Thing.ID, "brand annotation")
+	assert.Equal(t, brandUuid, actualAnnotations[0].Concept.ID, "brand annotation")
 }
 
 func TestSourceNonMatchingWhitelistIsIgnored(t *testing.T) {

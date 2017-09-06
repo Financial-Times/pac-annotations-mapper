@@ -1,16 +1,16 @@
 package service
 
-// ConceptAnnotations models the annotations as it will be written on the queue
-type ConceptAnnotations struct {
+// MappedAnnotations are submitted to the writer topic
+type MappedAnnotations struct {
 	UUID        string       `json:"uuid"`
 	Annotations []annotation `json:"annotations"`
 }
 
 type annotation struct {
-	Thing      thing        `json:"thing"`
+	Concept      concept        `json:"thing"`
 }
 
-type thing struct {
+type concept struct {
 	ID        string   `json:"id"`
 	Predicate string   `json:"predicate"`
 }
