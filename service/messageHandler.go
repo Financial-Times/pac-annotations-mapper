@@ -31,7 +31,11 @@ func NewAnnotationMapperService(whitelist *regexp.Regexp, messageProducer kafka.
 }
 
 func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error {
-	tid := msg.Headers["X-Request-Id"]
+	tid, found := msg.Headers["X-Request-Id"]
+	if !found {
+		tid = "unknown"
+	}
+
 	requestLog := log.WithField("transaction_id", tid)
 	if mapper.whitelist == nil {
 		requestLog.Error("Skipping this message because the whitelist is invalid.")
