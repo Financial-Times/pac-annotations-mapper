@@ -10,9 +10,8 @@ import (
 	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
-	ftkafka "github.com/Financial-Times/kafka-client-go/kafka"
+	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/Financial-Times/pac-annotations-mapper/health"
-	"github.com/Financial-Times/pac-annotations-mapper/kafka"
 	"github.com/Financial-Times/pac-annotations-mapper/service"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/jawher/mow.cli"
@@ -84,20 +83,19 @@ func main() {
 	app.Action = func() {
 		log.Infof("System code: %s, App Name: %s, Port: %s", appSystemCode, appName, *port)
 
-		whitelist, err := regexp.Compile(*whitelistRegex)
-		if err != nil {
-			log.Error("Please specify a valid whitelist ", err)
+		whitelist, regexErr := regexp.Compile(*whitelistRegex)
+		if regexErr != nil {
+			log.Error("Please specify a valid whitelist ", regexErr)
 		}
 
-		messageProducer := kafka.NewProxyProducer(*brokerAddress, *producerTopic, nil)
-		go messageProducer.Connect()
+		messageProducer, _ := kafka.NewPerseverantProducer(*brokerAddress, *producerTopic, nil, 0, time.Minute)
 
 		mapper := service.NewAnnotationMapperService(whitelist, messageProducer)
 
-		messageConsumer := kafka.NewProxyConsumer(*zookeeperAddress, *consumerGroup, []string{*consumerTopic}, ftkafka.DefaultConsumerConfig())
+		messageConsumer, _ := kafka.NewPerseverantConsumer(*zookeeperAddress, *consumerGroup, []string{*consumerTopic}, kafka.DefaultConsumerConfig(), 0, time.Minute)
 
 		go func() {
-			serveEndpoints(*port, messageConsumer)
+			serveEndpoints(*port, messageConsumer, messageProducer, regexErr)
 		}()
 
 		messageConsumer.StartListening(mapper.HandleMessage)
@@ -111,8 +109,8 @@ func main() {
 	}
 }
 
-func serveEndpoints(port string, consumer ftkafka.Consumer) {
-	healthService := health.NewHealthCheck(appSystemCode, appName, appDescription, consumer)
+func serveEndpoints(port string, consumer kafka.Consumer, producer kafka.Producer, whitelistErr error) {
+	healthService := health.NewHealthCheck(appSystemCode, appName, appDescription, whitelistErr, consumer, producer)
 
 	serveMux := http.NewServeMux()
 

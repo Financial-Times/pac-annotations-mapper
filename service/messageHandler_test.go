@@ -36,6 +36,10 @@ func (p *mockMessageProducer) SendMessage(message kafka.FTMessage) error {
 	return args.Error(0)
 }
 
+func (p *mockMessageProducer) ConnectivityCheck() error {
+	return nil
+}
+
 func TestMessageMapped(t *testing.T) {
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
