@@ -76,7 +76,7 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 		return err
 	}
 
-	var headers = buildConceptAnnotationsHeader(msg.Headers)
+	var headers = buildMappedAnnotationsHeader(msg.Headers)
 	message := kafka.FTMessage{Headers: headers, Body: string(marshalledAnnotations)}
 	err = mapper.messageProducer.SendMessage(message)
 	if err != nil {
@@ -98,7 +98,7 @@ func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnot
 	return ann
 }
 
-func buildConceptAnnotationsHeader(publishEventHeaders map[string]string) map[string]string {
+func buildMappedAnnotationsHeader(publishEventHeaders map[string]string) map[string]string {
 	return map[string]string{
 		"Message-Id":        uuid.NewV4().String(),
 		"Message-Type":      "concept-annotation",
