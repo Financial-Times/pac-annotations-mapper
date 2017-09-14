@@ -16,9 +16,9 @@ const messageTimestampDateFormat = "2006-01-02T15:04:05.000Z"
 var predicates = map[string]string{
 	"http://www.ft.com/ontology/classification/isClassifiedBy": "isClassifiedBy",
 	"http://www.ft.com/ontology/annotation/hasAuthor":          "hasAuthor",
-	"http://www.ft.com/ontology/annotation/hasContributor":     "hasContributor",
+	"http://www.ft.com/ontology/hasContributor":     "hasContributor",
 	"http://www.ft.com/ontology/annotation/about":              "about",
-	"http://www.ft.com/ontology/annotation/hasDisplayTag":      "hasDisplayTag",
+	"http://www.ft.com/ontology/hasDisplayTag":      "hasDisplayTag",
 	"http://www.ft.com/ontology/annotation/mentions":           "mentions",
 }
 
@@ -100,7 +100,7 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 	ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
 		WithUUID(metadataPublishEvent.UUID).
 		WithValidFlag(true).
-		Info("Successfully mapped")
+		Info("Sent annotation message to queue")
 	return nil
 }
 
