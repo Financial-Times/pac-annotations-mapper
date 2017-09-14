@@ -10,13 +10,12 @@ import (
 	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
-	ftLog "github.com/Financial-Times/go-logger"
+	log "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/Financial-Times/pac-annotations-mapper/health"
 	"github.com/Financial-Times/pac-annotations-mapper/service"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -77,7 +76,7 @@ func main() {
 		EnvVar: "PRODUCER_TOPIC",
 	})
 
-	ftLog.InitDefaultLogger(appSystemCode)
+	log.InitDefaultLogger(appSystemCode)
 	log.Info("[Startup] pac-annotations-mapper is starting ")
 
 	app.Action = func() {

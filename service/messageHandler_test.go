@@ -8,10 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	ftLog "github.com/Financial-Times/go-logger"
+	log "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/satori/go.uuid"
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -222,7 +221,7 @@ func TestMessageProducerError(t *testing.T) {
 }
 
 func TestNilWhitelistIsIgnoredWithErrorLog(t *testing.T) {
-	hook := ftLog.NewTestHook("")
+	hook := log.NewTestHook("")
 	mp := &mockMessageProducer{}
 	service := NewAnnotationMapperService(nil, mp)
 	inbound := kafka.FTMessage{
@@ -236,5 +235,5 @@ func TestNilWhitelistIsIgnoredWithErrorLog(t *testing.T) {
 
 	actualLog := hook.LastEntry()
 	assert.Equal(t, "Skipping this message because the whitelist is invalid.", actualLog.Message, "log message")
-	assert.Equal(t, log.ErrorLevel, actualLog.Level, "log level")
+	assert.Equal(t, "error", actualLog.Level.String(), "log level")
 }
