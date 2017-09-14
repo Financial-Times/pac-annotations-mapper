@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	ftLog "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
-	ftLog "github.com/Financial-Times/go-logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

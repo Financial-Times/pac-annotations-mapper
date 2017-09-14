@@ -2,7 +2,7 @@ package service
 
 // MetadataPublishEvent models the events we process from the queue
 type PacMetadataPublishEvent struct {
-	UUID        string               `json:"uuid"`
+	UUID        string                  `json:"uuid"`
 	Annotations []PacMetadataAnnotation `json:"annotations"`
 }
 
