@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"time"
 
+	ftLog "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
@@ -13,12 +14,12 @@ import (
 const messageTimestampDateFormat = "2006-01-02T15:04:05.000Z"
 
 var predicates = map[string]string{
-	"http://www.ft.com/ontology/classification/isClassifiedBy":"isClassifiedBy",
-	"http://www.ft.com/ontology/annotation/hasAuthor":"hasAuthor",
-	"http://www.ft.com/ontology/annotation/hasContributor":"hasContributor",
-	"http://www.ft.com/ontology/annotation/about":"about",
-	"http://www.ft.com/ontology/annotation/hasDisplayTag":"hasDisplayTag",
-	"http://www.ft.com/ontology/annotation/mentions":"mentions",
+	"http://www.ft.com/ontology/classification/isClassifiedBy": "isClassifiedBy",
+	"http://www.ft.com/ontology/annotation/hasAuthor":          "hasAuthor",
+	"http://www.ft.com/ontology/annotation/hasContributor":     "hasContributor",
+	"http://www.ft.com/ontology/annotation/about":              "about",
+	"http://www.ft.com/ontology/annotation/hasDisplayTag":      "hasDisplayTag",
+	"http://www.ft.com/ontology/annotation/mentions":           "mentions",
 }
 
 type AnnotationMapperService struct {
@@ -51,7 +52,10 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 	var metadataPublishEvent PacMetadataPublishEvent
 	err := json.Unmarshal([]byte(msg.Body), &metadataPublishEvent)
 	if err != nil {
-		requestLog.Error("Cannot unmarshal message body", err)
+		ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
+			WithValidFlag(false).
+			WithError(err).
+			Error("Cannot unmarshal message body")
 		return err
 	}
 
@@ -72,7 +76,11 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 
 	marshalledAnnotations, err := json.Marshal(mappedAnnotations)
 	if err != nil {
-		requestLog.Error("Error marshalling the concept annotations", err)
+		ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
+			WithUUID(metadataPublishEvent.UUID).
+			WithValidFlag(true).
+			WithError(err).
+			Error("Error marshalling the concept annotations")
 		return err
 	}
 
@@ -80,10 +88,19 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 	message := kafka.FTMessage{Headers: headers, Body: string(marshalledAnnotations)}
 	err = mapper.messageProducer.SendMessage(message)
 	if err != nil {
-		requestLog.Error("Error sending concept annotation to queue", err)
+		ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
+			WithUUID(metadataPublishEvent.UUID).
+			WithValidFlag(true).
+			WithError(err).
+			Error("Error sending concept annotations to queue")
+		requestLog.Error("", err)
 		return err
 	}
-	requestLog.Info("Sent annotation message to queue")
+
+	ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
+		WithUUID(metadataPublishEvent.UUID).
+		WithValidFlag(true).
+		Info("Successfully mapped")
 	return nil
 }
 

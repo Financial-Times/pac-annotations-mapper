@@ -11,7 +11,7 @@ import (
 	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
-	testLog "github.com/sirupsen/logrus/hooks/test"
+	ftLog "github.com/Financial-Times/go-logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -222,7 +222,7 @@ func TestMessageProducerError(t *testing.T) {
 }
 
 func TestNilWhitelistIsIgnoredWithErrorLog(t *testing.T) {
-	hook := testLog.NewGlobal()
+	hook := ftLog.NewTestHook("")
 	mp := &mockMessageProducer{}
 	service := NewAnnotationMapperService(nil, mp)
 	inbound := kafka.FTMessage{
