@@ -3,6 +3,6 @@ replicaCount: 2
 service:
   name: pac-annotations-mapper
 env:
-  CONSUMER_GROUP: pac-annotations-mapperr
+  CONSUMER_GROUP: pac-annotations-mapper
   CONSUMER_TOPIC: NativeCmsMetadataPublicationEvents
   PRODUCER_TOPIC: ConceptAnnotations
