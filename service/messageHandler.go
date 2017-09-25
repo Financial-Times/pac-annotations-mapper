@@ -13,6 +13,9 @@ import (
 
 const messageTimestampDateFormat = "2006-01-02T15:04:05.000Z"
 
+const mapperEvent = "Map"
+const annotattions = "annotations"
+
 var predicates = map[string]string{
 	"http://www.ft.com/ontology/classification/isClassifiedBy": "isClassifiedBy",
 	"http://www.ft.com/ontology/annotation/hasAuthor":          "hasAuthor",
@@ -52,7 +55,7 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 	var metadataPublishEvent PacMetadataPublishEvent
 	err := json.Unmarshal([]byte(msg.Body), &metadataPublishEvent)
 	if err != nil {
-		ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
+		ftLog.NewMonitoringEntry(mapperEvent, tid, annotattions).
 			WithValidFlag(false).
 			WithError(err).
 			Error("Cannot unmarshal message body")
@@ -76,7 +79,7 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 
 	marshalledAnnotations, err := json.Marshal(mappedAnnotations)
 	if err != nil {
-		ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
+		ftLog.NewMonitoringEntry(mapperEvent, tid, annotattions).
 			WithUUID(metadataPublishEvent.UUID).
 			WithValidFlag(true).
 			WithError(err).
@@ -88,7 +91,7 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 	message := kafka.FTMessage{Headers: headers, Body: string(marshalledAnnotations)}
 	err = mapper.messageProducer.SendMessage(message)
 	if err != nil {
-		ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
+		ftLog.NewMonitoringEntry(mapperEvent, tid, annotattions).
 			WithUUID(metadataPublishEvent.UUID).
 			WithValidFlag(true).
 			WithError(err).
@@ -97,7 +100,7 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 		return err
 	}
 
-	ftLog.NewMonitoringEntry(ftLog.MapperEvent, tid, ftLog.Annotations).
+	ftLog.NewMonitoringEntry(mapperEvent, tid, annotattions).
 		WithUUID(metadataPublishEvent.UUID).
 		WithValidFlag(true).
 		Info("Sent annotation message to queue")
