@@ -178,7 +178,7 @@ func TestMessageMapped(t *testing.T) {
 	assert.True(t, foundAbout, "expected about predicate was not found")
 	assert.True(t, foundHasDisplayTag, "expected hasDisplayTag predicate was not found")
 }
-git reset --hard origin/master
+
 func TestPredicateValidation(t *testing.T) {
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
