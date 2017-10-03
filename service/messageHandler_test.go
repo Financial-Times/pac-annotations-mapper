@@ -23,7 +23,7 @@ const (
 
 	hasBrand = "http://www.ft.com/ontology/classification/isClassifiedBy"
 	mentions = "http://www.ft.com/ontology/annotation/mentions"
-	implicitlyClassifiedBy = "http://www.ft.com/ontology/classification/implicitlyClassifiedBy"
+	implicitlyClassifiedBy = "http://www.ft.com/ontology/implicitlyClassifiedBy"
 	hasAuthor = "http://www.ft.com/ontology/annotation/hasAuthor"
 	hasContributor = "http://www.ft.com/ontology/hasContributor"
 	about = "http://www.ft.com/ontology/annotation/about"
@@ -178,7 +178,7 @@ func TestMessageMapped(t *testing.T) {
 	assert.True(t, foundAbout, "expected about predicate was not found")
 	assert.True(t, foundHasDisplayTag, "expected hasDisplayTag predicate was not found")
 }
-
+git reset --hard origin/master
 func TestPredicateValidation(t *testing.T) {
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
