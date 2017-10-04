@@ -40,6 +40,10 @@ func (p *mockMessageProducer) ConnectivityCheck() error {
 	return nil
 }
 
+func (p *mockMessageProducer) Shutdown() {
+
+}
+
 func TestMessageMapped(t *testing.T) {
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
