@@ -11,12 +11,12 @@
 			"versionExact": "0.3.0"
 		},
 		{
-			"checksumSHA1": "pTFdPRDHbpjowi9ERx6Kx8MCJH8=",
+			"checksumSHA1": "KW9ZejmwOf/ExHdYkj5oVFpdhKk=",
 			"path": "github.com/Financial-Times/kafka-client-go/kafka",
-			"revision": "f38c65c5b6b140762bcaa3290b44fdcf65eedc76",
-			"revisionTime": "2017-10-04T10:16:35Z",
-			"version": "0.5.1-dp-producer-healthcheck-leak-rc1",
-			"versionExact": "0.5.1-dp-producer-healthcheck-leak-rc1"
+			"revision": "7544bc260a912d702130306cec9f9aa9047383ee",
+			"revisionTime": "2017-10-06T13:45:50Z",
+			"version": "0.5.1",
+			"versionExact": "0.5.1"
 		},
 		{
 			"checksumSHA1": "lQfsRf7gWYQDNoI3IOZuwNGUwRo=",
