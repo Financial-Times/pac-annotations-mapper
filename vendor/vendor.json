@@ -11,12 +11,12 @@
 			"versionExact": "0.3.0"
 		},
 		{
-			"checksumSHA1": "KW9ZejmwOf/ExHdYkj5oVFpdhKk=",
+			"checksumSHA1": "8xgl0z0fzjv0+/0JfFdl9W3UNmg=",
 			"path": "github.com/Financial-Times/kafka-client-go/kafka",
-			"revision": "7544bc260a912d702130306cec9f9aa9047383ee",
-			"revisionTime": "2017-10-06T13:45:50Z",
-			"version": "0.5.1",
-			"versionExact": "0.5.1"
+			"revision": "4ad8d69b0ab2186062b3dee19107dc3301432a16",
+			"revisionTime": "2017-10-10T13:06:43Z",
+			"version": "0.6.0",
+			"versionExact": "0.6.0"
 		},
 		{
 			"checksumSHA1": "lQfsRf7gWYQDNoI3IOZuwNGUwRo=",
