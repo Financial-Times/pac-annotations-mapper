@@ -11,12 +11,12 @@
 			"versionExact": "0.3.0"
 		},
 		{
-			"checksumSHA1": "vbUjMKS6f8xmkIJQ1BYZ40u27kA=",
+			"checksumSHA1": "dKfZ1HEFfokyFhzT9Brj26wPjsw=",
 			"path": "github.com/Financial-Times/go-logger",
-			"revision": "a47823b56a548d912e3171d22522be52458bfe13",
-			"revisionTime": "2017-09-14T14:49:18Z",
-			"version": "0.0.3-custom-json-formatter-rc.2",
-			"versionExact": "0.0.3-custom-json-formatter-rc.2"
+			"revision": "43e183567b9083803fa13105af67eb1914cea978",
+			"revisionTime": "2017-10-06T15:59:05Z",
+			"version": "0.0.3-custom-json-formatter-rc.3",
+			"versionExact": "0.0.3-custom-json-formatter-rc.3"
 		},
 		{
 			"checksumSHA1": "bl73YqpwNxxeBmy0iAnhWXUqatU=",

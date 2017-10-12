@@ -5,10 +5,9 @@ import (
 	"regexp"
 	"time"
 
-	ftLog "github.com/Financial-Times/go-logger"
+	log "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/satori/go.uuid"
-	log "github.com/sirupsen/logrus"
 )
 
 const messageTimestampDateFormat = "2006-01-02T15:04:05.000Z"
@@ -40,7 +39,7 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 		tid = "unknown"
 	}
 
-	requestLog := log.WithField("transaction_id", tid)
+	requestLog := log.WithTransactionID(tid)
 	if mapper.whitelist == nil {
 		requestLog.Error("Skipping this message because the whitelist is invalid.")
 		return nil
@@ -55,14 +54,14 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 	var metadataPublishEvent PacMetadataPublishEvent
 	err := json.Unmarshal([]byte(msg.Body), &metadataPublishEvent)
 	if err != nil {
-		ftLog.NewMonitoringEntry(mapperEvent, tid, annotattions).
+		log.WithMonitoringEvent(mapperEvent, tid, annotattions).
 			WithValidFlag(false).
 			WithError(err).
 			Error("Cannot unmarshal message body")
 		return err
 	}
 
-	requestLog = requestLog.WithField("uuid", metadataPublishEvent.UUID)
+	requestLog = requestLog.WithUUID(metadataPublishEvent.UUID)
 	requestLog.Info("Processing metadata publish event")
 
 	annotations := []annotation{}
@@ -79,7 +78,7 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 
 	marshalledAnnotations, err := json.Marshal(mappedAnnotations)
 	if err != nil {
-		ftLog.NewMonitoringEntry(mapperEvent, tid, annotattions).
+		log.WithMonitoringEvent(mapperEvent, tid, annotattions).
 			WithUUID(metadataPublishEvent.UUID).
 			WithValidFlag(true).
 			WithError(err).
@@ -91,16 +90,15 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 	message := kafka.FTMessage{Headers: headers, Body: string(marshalledAnnotations)}
 	err = mapper.messageProducer.SendMessage(message)
 	if err != nil {
-		ftLog.NewMonitoringEntry(mapperEvent, tid, annotattions).
+		log.WithMonitoringEvent(mapperEvent, tid, annotattions).
 			WithUUID(metadataPublishEvent.UUID).
 			WithValidFlag(true).
 			WithError(err).
 			Error("Error sending concept annotations to queue")
-		requestLog.Error("", err)
 		return err
 	}
 
-	ftLog.NewMonitoringEntry(mapperEvent, tid, annotattions).
+	log.WithMonitoringEvent(mapperEvent, tid, annotattions).
 		WithUUID(metadataPublishEvent.UUID).
 		WithValidFlag(true).
 		Info("Sent annotation message to queue")

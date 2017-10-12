@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"strconv"
 )
 
 const (
@@ -40,6 +41,7 @@ func (p *mockMessageProducer) ConnectivityCheck() error {
 }
 
 func TestMessageMapped(t *testing.T) {
+	hook := log.NewTestHook("test")
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
 	mp.On("SendMessage", mock.AnythingOfType("kafka.FTMessage")).Return(nil)
@@ -105,9 +107,21 @@ func TestMessageMapped(t *testing.T) {
 	}
 	assert.True(t, foundBrand, "expected brand predicate was not found")
 	assert.True(t, foundMentions, "expected mentions predicate was not found")
+
+	// check of monitoring logging
+	actualLog := hook.LastEntry()
+	assert.Equal(t, "annotations", actualLog.Data["content_type"])
+	assert.Equal(t, "Map", actualLog.Data["event"])
+	isValid, err := strconv.ParseBool(actualLog.Data["isValid"].(string))
+	assert.NoError(t, err)
+	assert.True(t, isValid)
+	monitoringEvent, err := strconv.ParseBool(actualLog.Data["monitoring_event"].(string))
+	assert.NoError(t, err)
+	assert.True(t, monitoringEvent)
 }
 
 func TestPredicateValidation(t *testing.T) {
+	hook := log.NewTestHook("test")
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
 	mp.On("SendMessage", mock.AnythingOfType("kafka.FTMessage")).Return(nil)
@@ -158,9 +172,21 @@ func TestPredicateValidation(t *testing.T) {
 	actualAnnotations := actualBody.Annotations
 	assert.Len(t, actualAnnotations, 1, "annotations")
 	assert.Equal(t, brandUuid, actualAnnotations[0].Concept.ID, "brand annotation")
+
+	// check of monitoring logging
+	actualLog := hook.LastEntry()
+	assert.Equal(t, "annotations", actualLog.Data["content_type"])
+	assert.Equal(t, "Map", actualLog.Data["event"])
+	isValid, err := strconv.ParseBool(actualLog.Data["isValid"].(string))
+	assert.NoError(t, err)
+	assert.True(t, isValid)
+	monitoringEvent, err := strconv.ParseBool(actualLog.Data["monitoring_event"].(string))
+	assert.NoError(t, err)
+	assert.True(t, monitoringEvent)
 }
 
 func TestSourceNonMatchingWhitelistIsIgnored(t *testing.T) {
+	log.NewTestHook("test")
 	whitelist := regexp.MustCompile(`"http://www\.example\.com/ft-system`)
 	mp := &mockMessageProducer{}
 	service := NewAnnotationMapperService(whitelist, mp)
@@ -175,6 +201,7 @@ func TestSourceNonMatchingWhitelistIsIgnored(t *testing.T) {
 }
 
 func TestSyntacticallyInvalidJsonIsRejected(t *testing.T) {
+	hook := log.NewTestHook("test")
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
 	service := NewAnnotationMapperService(whitelist, mp)
@@ -186,9 +213,21 @@ func TestSyntacticallyInvalidJsonIsRejected(t *testing.T) {
 	actual := service.HandleMessage(inbound)
 	assert.Error(t, actual)
 	mp.AssertExpectations(t)
+
+	// check of monitoring logging
+	actualLog := hook.LastEntry()
+	assert.Equal(t, "annotations", actualLog.Data["content_type"])
+	assert.Equal(t, "Map", actualLog.Data["event"])
+	isValid, err := strconv.ParseBool(actualLog.Data["isValid"].(string))
+	assert.NoError(t, err)
+	assert.False(t, isValid)
+	monitoringEvent, err := strconv.ParseBool(actualLog.Data["monitoring_event"].(string))
+	assert.NoError(t, err)
+	assert.True(t, monitoringEvent)
 }
 
 func TestMessageProducerError(t *testing.T) {
+	hook := log.NewTestHook("test")
 	errmsg := "test error"
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
@@ -218,6 +257,17 @@ func TestMessageProducerError(t *testing.T) {
 	assert.EqualError(t, err, errmsg)
 
 	mp.AssertExpectations(t)
+
+	// check of monitoring logging
+	actualLog := hook.LastEntry()
+	assert.Equal(t, "annotations", actualLog.Data["content_type"])
+	assert.Equal(t, "Map", actualLog.Data["event"])
+	isValid, err := strconv.ParseBool(actualLog.Data["isValid"].(string))
+	assert.NoError(t, err)
+	assert.True(t, isValid)
+	monitoringEvent, err := strconv.ParseBool(actualLog.Data["monitoring_event"].(string))
+	assert.NoError(t, err)
+	assert.True(t, monitoringEvent)
 }
 
 func TestNilWhitelistIsIgnoredWithErrorLog(t *testing.T) {
