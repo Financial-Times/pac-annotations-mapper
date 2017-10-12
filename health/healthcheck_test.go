@@ -37,6 +37,9 @@ func (mp mockProducer) ConnectivityCheck() error {
 	return mp.connectivityErr
 }
 
+func (mp mockProducer) Shutdown() {
+}
+
 func TestHappyHealthCheck(t *testing.T) {
 	hc := NewHealthCheck("test-system-code", "test-app-name", "test-app-desc", nil, mockConsumer{nil}, mockProducer{})
 

@@ -19,12 +19,12 @@
 			"versionExact": "0.0.3-custom-json-formatter-rc.3"
 		},
 		{
-			"checksumSHA1": "bl73YqpwNxxeBmy0iAnhWXUqatU=",
+			"checksumSHA1": "8xgl0z0fzjv0+/0JfFdl9W3UNmg=",
 			"path": "github.com/Financial-Times/kafka-client-go/kafka",
-			"revision": "fcd6c4618a939db8903eb301e9da3d7e5eed406e",
-			"revisionTime": "2017-09-12T08:52:54Z",
-			"version": "0.5.0-dp-connectivity-checks-rc1",
-			"versionExact": "0.5.0-dp-connectivity-checks-rc1"
+			"revision": "4ad8d69b0ab2186062b3dee19107dc3301432a16",
+			"revisionTime": "2017-10-10T13:06:43Z",
+			"version": "0.6.0",
+			"versionExact": "0.6.0"
 		},
 		{
 			"checksumSHA1": "fqpohN7Qp2qj7TLMbUxh/cK4oH0=",

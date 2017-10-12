@@ -23,6 +23,11 @@ const (
 
 	hasBrand = "http://www.ft.com/ontology/classification/isClassifiedBy"
 	mentions = "http://www.ft.com/ontology/annotation/mentions"
+	implicitlyClassifiedBy = "http://www.ft.com/ontology/implicitlyClassifiedBy"
+	hasAuthor = "http://www.ft.com/ontology/annotation/hasAuthor"
+	hasContributor = "http://www.ft.com/ontology/hasContributor"
+	about = "http://www.ft.com/ontology/annotation/about"
+	hasDisplayTag = "http://www.ft.com/ontology/hasDisplayTag"
 )
 
 type mockMessageProducer struct {
@@ -40,6 +45,10 @@ func (p *mockMessageProducer) ConnectivityCheck() error {
 	return nil
 }
 
+func (p *mockMessageProducer) Shutdown() {
+
+}
+
 func TestMessageMapped(t *testing.T) {
 	hook := log.NewTestHook("test")
 	whitelist := regexp.MustCompile(strings.Replace(testSystemId, ".", `\.`, -1))
@@ -51,6 +60,12 @@ func TestMessageMapped(t *testing.T) {
 	contentUuid := uuid.NewV4().String()
 	brandUuid := uuid.NewV4().String()
 	mentionsUuid := uuid.NewV4().String()
+	implicitlyClassifiedByUuid := uuid.NewV4().String()
+	hasAuthorUuid := uuid.NewV4().String()
+	hasContributorUuid := uuid.NewV4().String()
+	aboutUuid := uuid.NewV4().String()
+	hasDisplayTagUuid := uuid.NewV4().String()
+
 	inbound := kafka.FTMessage{
 		Headers: map[string]string{
 			"Origin-System-Id": testSystemId,
@@ -67,10 +82,35 @@ func TestMessageMapped(t *testing.T) {
 		    {
 		        "predicate":"%s",
 		        "id":"%s"
+		    },
+		    {
+		        "predicate":"%s",
+		        "id":"%s"
+		    },
+		    {
+		        "predicate":"%s",
+		        "id":"%s"
+		    },
+		    {
+		        "predicate":"%s",
+		        "id":"%s"
+		    },
+		    {
+		        "predicate":"%s",
+		        "id":"%s"
+		    },
+		    {
+		        "predicate":"%s",
+		        "id":"%s"
 		    }
 		]
 		}`, contentUuid,
 			hasBrand, brandUuid,
+			implicitlyClassifiedBy, implicitlyClassifiedByUuid,
+			hasAuthor, hasAuthorUuid,
+			hasContributor, hasContributorUuid,
+			about, aboutUuid,
+			hasDisplayTag, hasDisplayTagUuid,
 			mentions, mentionsUuid),
 	}
 
@@ -90,10 +130,16 @@ func TestMessageMapped(t *testing.T) {
 	assert.Equal(t, contentUuid, actualBody.UUID, "content uuid")
 
 	actualAnnotations := actualBody.Annotations
-	assert.Len(t, actualAnnotations, 2, "annotations")
+	assert.Len(t, actualAnnotations, 7, "annotations")
 
 	foundBrand := false
 	foundMentions := false
+	foundImplicitlyClassifiedBy := false
+	foundHasAuthor := false
+	foundHasContributor := false
+	foundAbout := false
+	foundHasDisplayTag := false
+
 	for _, ann := range actualAnnotations {
 		switch ann.Concept.Predicate {
 		case "isClassifiedBy":
@@ -103,10 +149,39 @@ func TestMessageMapped(t *testing.T) {
 		case "mentions":
 			assert.Equal(t, mentionsUuid, ann.Concept.ID, "mentions annotation")
 			foundMentions = true
+
+		case "implicitlyClassifiedBy":
+			assert.Equal(t, implicitlyClassifiedByUuid, ann.Concept.ID, "implicitlyClassifiedBy annotation")
+			foundImplicitlyClassifiedBy = true
+
+
+		case "hasAuthor":
+			assert.Equal(t, hasAuthorUuid, ann.Concept.ID, "hasAuthor annotation")
+			foundHasAuthor = true
+
+
+		case "hasContributor":
+			assert.Equal(t, hasContributorUuid, ann.Concept.ID, "hasContributor annotation")
+			foundHasContributor = true
+
+
+		case "about":
+			assert.Equal(t, aboutUuid, ann.Concept.ID, "about annotation")
+			foundAbout = true
+
+		case "hasDisplayTag":
+			assert.Equal(t, hasDisplayTagUuid, ann.Concept.ID, "hasDisplayTag annotation")
+			foundHasDisplayTag = true
 		}
+
 	}
 	assert.True(t, foundBrand, "expected brand predicate was not found")
 	assert.True(t, foundMentions, "expected mentions predicate was not found")
+	assert.True(t, foundImplicitlyClassifiedBy, "expected implicitlyClassifiedBy predicate was not found")
+	assert.True(t, foundHasAuthor, "expected hasAuthor predicate was not found")
+	assert.True(t, foundHasContributor, "expected hasContributor predicate was not found")
+	assert.True(t, foundAbout, "expected about predicate was not found")
+	assert.True(t, foundHasDisplayTag, "expected hasDisplayTag predicate was not found")
 
 	// check of monitoring logging
 	actualLog := hook.LastEntry()
@@ -271,7 +346,7 @@ func TestMessageProducerError(t *testing.T) {
 }
 
 func TestNilWhitelistIsIgnoredWithErrorLog(t *testing.T) {
-	hook := log.NewTestHook("")
+	hook := log.NewTestHook("test")
 	mp := &mockMessageProducer{}
 	service := NewAnnotationMapperService(nil, mp)
 	inbound := kafka.FTMessage{

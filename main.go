@@ -91,13 +91,11 @@ func main() {
 
 		mapper := service.NewAnnotationMapperService(whitelist, messageProducer)
 
-		messageConsumer, _ := kafka.NewPerseverantConsumer(*zookeeperAddress, *consumerGroup, []string{*consumerTopic}, kafka.DefaultConsumerConfig(), 0, time.Minute)
+		messageConsumer, _ := kafka.NewPerseverantConsumer(*zookeeperAddress, *consumerGroup, []string{*consumerTopic}, kafka.DefaultConsumerConfig(), time.Minute)
 
-		go func() {
-			serveEndpoints(*port, messageConsumer, messageProducer, regexErr)
-		}()
+		go serveEndpoints(*port, messageConsumer, messageProducer, regexErr)
 
-		messageConsumer.StartListening(mapper.HandleMessage)
+		go messageConsumer.StartListening(mapper.HandleMessage)
 
 		waitForSignal()
 	}
