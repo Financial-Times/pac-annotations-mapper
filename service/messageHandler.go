@@ -13,7 +13,7 @@ import (
 const messageTimestampDateFormat = "2006-01-02T15:04:05.000Z"
 
 const mapperEvent = "Map"
-const annotationsType = "annotations"
+const annotationsType = "Annotations"
 
 var predicates = map[string]string{
 	"http://www.ft.com/ontology/classification/isClassifiedBy": "isClassifiedBy",

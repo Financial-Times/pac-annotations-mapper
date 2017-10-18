@@ -181,8 +181,9 @@ func TestMessageMapped(t *testing.T) {
 
 	// check of monitoring logging
 	logTest.Assert(t, hook.LastEntry()).
-		HasMonitoringEvent("Map", testTxId, "annotations").
-		HasValidFlag(true)
+		HasMonitoringEvent("Map", testTxId, "Annotations").
+		HasValidFlag(true).
+		HasUUID(contentUuid)
 }
 
 func TestPredicateValidation(t *testing.T) {
@@ -240,8 +241,9 @@ func TestPredicateValidation(t *testing.T) {
 
 	// check of monitoring logging
 	logTest.Assert(t, hook.LastEntry()).
-		HasMonitoringEvent("Map", testTxId, "annotations").
-		HasValidFlag(true)
+		HasMonitoringEvent("Map", testTxId, "Annotations").
+		HasValidFlag(true).
+		HasUUID(contentUuid)
 }
 
 func TestSourceNonMatchingWhitelistIsIgnored(t *testing.T) {
@@ -275,7 +277,7 @@ func TestSyntacticallyInvalidJsonIsRejected(t *testing.T) {
 
 	// check of monitoring logging
 	logTest.Assert(t, hook.LastEntry()).
-		HasMonitoringEvent("Map", "unknown", "annotations").
+		HasMonitoringEvent("Map", "unknown", "Annotations").
 		HasValidFlag(false)
 }
 
@@ -313,8 +315,9 @@ func TestMessageProducerError(t *testing.T) {
 
 	// check of monitoring logging
 	logTest.Assert(t, hook.LastEntry()).
-		HasMonitoringEvent("Map", testTxId, "annotations").
-		HasValidFlag(true)
+		HasMonitoringEvent("Map", testTxId, "Annotations").
+		HasValidFlag(true).
+		HasUUID(contentUuid)
 }
 
 func TestNilWhitelistIsIgnoredWithErrorLog(t *testing.T) {
