@@ -10,12 +10,12 @@ import (
 	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
+	log "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/Financial-Times/pac-annotations-mapper/health"
 	"github.com/Financial-Times/pac-annotations-mapper/service"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
 	"github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 )
 
 func main() {
-	app := cli.App("pac-annotations-mapper", appDescription)
+	app := cli.App(appSystemCode, appDescription)
 
 	port := app.String(cli.StringOpt{
 		Name:   "port",
@@ -76,8 +76,7 @@ func main() {
 		EnvVar: "PRODUCER_TOPIC",
 	})
 
-	log.SetFormatter(&log.JSONFormatter{TimestampFormat: time.RFC3339Nano})
-	log.SetLevel(log.InfoLevel)
+	log.InitDefaultLogger(appSystemCode)
 	log.Info("[Startup] pac-annotations-mapper is starting ")
 
 	app.Action = func() {

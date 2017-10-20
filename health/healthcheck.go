@@ -11,22 +11,22 @@ import (
 const HealthPath = "/__health"
 
 type HealthCheck struct {
-	appSystemCode string
-	appName       string
+	appSystemCode  string
+	appName        string
 	appDescription string
 	whitelistError error
-	consumer kafka.Consumer
-	producer kafka.Producer
+	consumer       kafka.Consumer
+	producer       kafka.Producer
 }
 
 func NewHealthCheck(appSystemCode string, appName string, appDescription string, whitelistErr error, c kafka.Consumer, p kafka.Producer) *HealthCheck {
 	return &HealthCheck{
-		appSystemCode: appSystemCode,
-		appName: appName,
+		appSystemCode:  appSystemCode,
+		appName:        appName,
 		appDescription: appDescription,
 		whitelistError: whitelistErr,
-		consumer: c,
-		producer: p,
+		consumer:       c,
+		producer:       p,
 	}
 }
 
@@ -57,7 +57,7 @@ func (h *HealthCheck) whitelistCheck() fthealth.Check {
 		BusinessImpact:   "No metadata will be mapped to UPP. This will negatively impact metadata availability.",
 		TechnicalSummary: "The whitelist configuration for this mapper is invalid",
 		PanicGuide:       "https://dewey.ft.com/pac-annotations-mapper.html",
-		Checker:          func() (string, error) {
+		Checker: func() (string, error) {
 			return "Whitelist regex is invalid", h.whitelistError
 		},
 	}

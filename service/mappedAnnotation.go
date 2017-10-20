@@ -7,10 +7,10 @@ type MappedAnnotations struct {
 }
 
 type annotation struct {
-	Concept      concept        `json:"thing"`
+	Concept concept `json:"thing"`
 }
 
 type concept struct {
-	ID        string   `json:"id"`
-	Predicate string   `json:"predicate"`
+	ID        string `json:"id"`
+	Predicate string `json:"predicate"`
 }

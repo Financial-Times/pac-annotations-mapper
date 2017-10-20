@@ -41,7 +41,7 @@ func (mp mockProducer) Shutdown() {
 }
 
 func TestHappyHealthCheck(t *testing.T) {
-	hc := NewHealthCheck("test-system-code","test-app-name","test-app-desc", nil, mockConsumer{nil}, mockProducer{})
+	hc := NewHealthCheck("test-system-code", "test-app-name", "test-app-desc", nil, mockConsumer{nil}, mockProducer{})
 
 	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
 	w := httptest.NewRecorder()
@@ -53,7 +53,7 @@ func TestHappyHealthCheck(t *testing.T) {
 }
 
 func TestHealthCheckWithUnhappyConsumer(t *testing.T) {
-	hc := HealthCheck{"test-system-code","test-app-name","test-app-desc", nil,mockConsumer{errors.New("Error connecting to the queue")}, mockProducer{}}
+	hc := HealthCheck{"test-system-code", "test-app-name", "test-app-desc", nil, mockConsumer{errors.New("Error connecting to the queue")}, mockProducer{}}
 
 	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
 	w := httptest.NewRecorder()
@@ -65,7 +65,7 @@ func TestHealthCheckWithUnhappyConsumer(t *testing.T) {
 }
 
 func TestHealthCheckWithUnhappyProducer(t *testing.T) {
-	hc := HealthCheck{"test-system-code","test-app-name","test-app-desc", nil,mockConsumer{nil}, mockProducer{errors.New("Error connecting to the queue")}}
+	hc := HealthCheck{"test-system-code", "test-app-name", "test-app-desc", nil, mockConsumer{nil}, mockProducer{errors.New("Error connecting to the queue")}}
 
 	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
 	w := httptest.NewRecorder()
@@ -78,7 +78,7 @@ func TestHealthCheckWithUnhappyProducer(t *testing.T) {
 
 func TestHealthCheckWithWhitelistError(t *testing.T) {
 	whitelistErr := errors.New("test error")
-	hc := NewHealthCheck("test-system-code","test-app-name","test-app-desc", whitelistErr, mockConsumer{nil}, mockProducer{})
+	hc := NewHealthCheck("test-system-code", "test-app-name", "test-app-desc", whitelistErr, mockConsumer{nil}, mockProducer{})
 
 	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
 	w := httptest.NewRecorder()
@@ -90,7 +90,7 @@ func TestHealthCheckWithWhitelistError(t *testing.T) {
 }
 
 func TestGTGHappyFlow(t *testing.T) {
-	hc := HealthCheck{"test-system-code","test-app-name","test-app-desc", nil,mockConsumer{nil}, mockProducer{}}
+	hc := HealthCheck{"test-system-code", "test-app-name", "test-app-desc", nil, mockConsumer{nil}, mockProducer{}}
 
 	status := hc.GTG()
 	assert.True(t, status.GoodToGo)
@@ -98,7 +98,7 @@ func TestGTGHappyFlow(t *testing.T) {
 }
 
 func TestGTGBrokenConsumer(t *testing.T) {
-	hc := HealthCheck{"test-system-code","test-app-name","test-app-desc", nil,mockConsumer{errors.New("Error connecting to the queue")}, mockProducer{}}
+	hc := HealthCheck{"test-system-code", "test-app-name", "test-app-desc", nil, mockConsumer{errors.New("Error connecting to the queue")}, mockProducer{}}
 
 	status := hc.GTG()
 	assert.False(t, status.GoodToGo)
@@ -106,7 +106,7 @@ func TestGTGBrokenConsumer(t *testing.T) {
 }
 
 func TestGTGBrokenProducer(t *testing.T) {
-	hc := HealthCheck{"test-system-code","test-app-name","test-app-desc", nil,mockConsumer{}, mockProducer{errors.New("Error connecting to the queue")}}
+	hc := HealthCheck{"test-system-code", "test-app-name", "test-app-desc", nil, mockConsumer{}, mockProducer{errors.New("Error connecting to the queue")}}
 
 	status := hc.GTG()
 	assert.False(t, status.GoodToGo)
