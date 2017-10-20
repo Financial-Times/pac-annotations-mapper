@@ -11,20 +11,20 @@
 			"versionExact": "0.3.0"
 		},
 		{
-			"checksumSHA1": "P2CY6+IIx+D5LQpBxUlOmxNW3Vw=",
+			"checksumSHA1": "vEjWOjTbj1zDU4aNsl1u4J801Wg=",
 			"path": "github.com/Financial-Times/go-logger",
-			"revision": "fb86ab056054cb9b58d295bd2ffbeac0123900e5",
-			"revisionTime": "2017-10-16T13:51:52Z",
-			"version": "0.0.3-custom-json-formatter-rc.5",
-			"versionExact": "0.0.3-custom-json-formatter-rc.5"
+			"revision": "ec38b420999cfcbc86816afb47f365dad510450c",
+			"revisionTime": "2017-10-20T13:42:12Z",
+			"version": "0.0.3",
+			"versionExact": "0.0.3"
 		},
 		{
 			"checksumSHA1": "eQJNFoxeNYlvXsrc762OCAmvXCE=",
 			"path": "github.com/Financial-Times/go-logger/test",
-			"revision": "fb86ab056054cb9b58d295bd2ffbeac0123900e5",
-			"revisionTime": "2017-10-16T13:51:52Z",
-			"version": "0.0.3-custom-json-formatter-rc.5",
-			"versionExact": "0.0.3-custom-json-formatter-rc.5"
+			"revision": "ec38b420999cfcbc86816afb47f365dad510450c",
+			"revisionTime": "2017-10-20T13:42:12Z",
+			"version": "0.0.3",
+			"versionExact": "0.0.3"
 		},
 		{
 			"checksumSHA1": "8xgl0z0fzjv0+/0JfFdl9W3UNmg=",
