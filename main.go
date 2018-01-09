@@ -111,7 +111,16 @@ func serveEndpoints(port string, consumer kafka.Consumer, producer kafka.Produce
 
 	serveMux := http.NewServeMux()
 
-	hc := fthealth.HealthCheck{SystemCode: appSystemCode, Name: appName, Description: appDescription, Checks: healthService.Checks()}
+	hc := fthealth.TimedHealthCheck{
+		HealthCheck: fthealth.HealthCheck{
+			SystemCode: appSystemCode,
+			Name: appName,
+			Description: appDescription,
+			Checks: healthService.Checks(),
+		},
+		Timeout: 10 * time.Second,
+	}
+
 	serveMux.HandleFunc(health.HealthPath, fthealth.Handler(hc))
 	serveMux.HandleFunc(status.GTGPath, status.NewGoodToGoHandler(healthService.GTG))
 	serveMux.HandleFunc(status.BuildInfoPath, status.BuildInfoHandler)
