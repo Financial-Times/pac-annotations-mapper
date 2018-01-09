@@ -113,10 +113,10 @@ func serveEndpoints(port string, consumer kafka.Consumer, producer kafka.Produce
 
 	hc := fthealth.TimedHealthCheck{
 		HealthCheck: fthealth.HealthCheck{
-			SystemCode: appSystemCode,
-			Name: appName,
+			SystemCode:  appSystemCode,
+			Name:        appName,
 			Description: appDescription,
-			Checks: healthService.Checks(),
+			Checks:      healthService.Checks(),
 		},
 		Timeout: 10 * time.Second,
 	}
