@@ -9,6 +9,8 @@ image:
   repository: coco/pac-annotations-mapper
   pullPolicy: IfNotPresent
 resources:
+  requests:
+    memory: 45Mi
   limits:
     memory: 256Mi
 
