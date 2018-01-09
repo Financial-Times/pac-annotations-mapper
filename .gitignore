@@ -15,4 +15,5 @@
 /.idea/
 .project
 
-vendor/*/
+/vendor/*
+!/vendor/vendor.json
