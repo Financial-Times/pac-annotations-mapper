@@ -53,7 +53,7 @@ func (h *HealthCheck) whitelistCheck() fthealth.Check {
 	return fthealth.Check{
 		ID:               "message-whitelist",
 		Name:             "Message Whitelist Filter",
-		Severity:         1,
+		Severity:         2,
 		BusinessImpact:   "No metadata will be mapped to UPP. This will negatively impact metadata availability.",
 		TechnicalSummary: "The whitelist configuration for this mapper is invalid",
 		PanicGuide:       "https://dewey.ft.com/pac-annotations-mapper.html",
@@ -67,7 +67,7 @@ func (h *HealthCheck) readQueueCheck() fthealth.Check {
 	return fthealth.Check{
 		ID:               "read-message-queue-reachable",
 		Name:             "Read Message Queue Reachable",
-		Severity:         1,
+		Severity:         2,
 		BusinessImpact:   "PAC Metadata can't be read from queue. This will negatively impact metadata availability.",
 		TechnicalSummary: "Read message queue is not reachable/healthy",
 		PanicGuide:       "https://dewey.ft.com/pac-annotations-mapper.html",
@@ -79,7 +79,7 @@ func (h *HealthCheck) writeQueueCheck() fthealth.Check {
 	return fthealth.Check{
 		ID:               "write-message-queue-reachable",
 		Name:             "Write Message Queue Reachable",
-		Severity:         1,
+		Severity:         2,
 		BusinessImpact:   "Mapped Metadata can't be written to queue. This will negatively impact metadata availability.",
 		TechnicalSummary: "Write message queue is not reachable/healthy",
 		PanicGuide:       "https://dewey.ft.com/pac-annotations-mapper.html",
