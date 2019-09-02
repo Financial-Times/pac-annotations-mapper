@@ -3,6 +3,7 @@
 *.dll
 *.so
 *.dylib
+pac-annotations-mapper
 
 # Test binary, build with `go test -c`
 *.test
