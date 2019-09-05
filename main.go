@@ -15,7 +15,7 @@ import (
 	"github.com/Financial-Times/pac-annotations-mapper/health"
 	"github.com/Financial-Times/pac-annotations-mapper/service"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
-	"github.com/jawher/mow.cli"
+	cli "github.com/jawher/mow.cli"
 )
 
 const (
@@ -91,7 +91,7 @@ func main() {
 
 		mapper := service.NewAnnotationMapperService(whitelist, messageProducer)
 
-		messageConsumer, _ := kafka.NewPerseverantConsumer(*zookeeperAddress, *consumerGroup, []string{*consumerTopic}, kafka.DefaultConsumerConfig(), time.Minute)
+		messageConsumer, _ := kafka.NewPerseverantConsumer(*zookeeperAddress, *consumerGroup, []string{*consumerTopic}, kafka.DefaultConsumerConfig(), time.Minute, nil)
 
 		go serveEndpoints(*port, messageConsumer, messageProducer, regexErr)
 
