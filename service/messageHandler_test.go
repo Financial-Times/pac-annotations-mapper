@@ -82,6 +82,10 @@ func TestMessageMapped(t *testing.T) {
 			PredicateURI: "invalid predicate",
 			ShouldSkip:   true,
 		},
+		"hasBrand": {
+			PredicateURI:    "http://www.ft.com/ontology/hasBrand",
+			PredicateMapped: "hasBrand",
+		},
 	}
 
 	for testName, test := range tests {
