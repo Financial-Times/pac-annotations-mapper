@@ -12,8 +12,10 @@ jobs:
       - run:
           name: External Dependencies
           command: |
-            go get github.com/mattn/goveralls
-            go get -u github.com/jstemmer/go-junit-report
+            GO111MODULE=off go get github.com/mattn/goveralls
+            GO111MODULE=off go get github.com/jstemmer/go-junit-report
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.18.0
+            wget https://raw.githubusercontent.com/Financial-Times/upp-coding-standard/v1.0.0/golangci-config/.golangci.yml
       - run:
           name: Test Results
           command: |
@@ -22,6 +24,10 @@ jobs:
       - run:
           name: Go Build
           command: go build -mod=readonly -v
+      - run:
+          name: Run linters
+          command: |
+            golangci-lint run --new-from-rev=master --config .golangci.yml
       - run:
           name: Run Tests
           command: |
