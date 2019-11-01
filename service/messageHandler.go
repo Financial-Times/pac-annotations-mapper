@@ -7,7 +7,7 @@ import (
 
 	log "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/kafka-client-go/kafka"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 const messageTimestampDateFormat = "2006-01-02T15:04:05.000Z"
@@ -16,6 +16,7 @@ const mapperEvent = "Map"
 const annotationsType = "Annotations"
 
 var predicates = map[string]string{
+	"http://www.ft.com/ontology/hasBrand":                      "hasBrand",
 	"http://www.ft.com/ontology/classification/isClassifiedBy": "isClassifiedBy",
 	"http://www.ft.com/ontology/implicitlyClassifiedBy":        "implicitlyClassifiedBy",
 	"http://www.ft.com/ontology/annotation/hasAuthor":          "hasAuthor",
@@ -110,8 +111,8 @@ func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnot
 	var ann *annotation
 
 	if predicate, found := predicates[metadata.Predicate]; found {
-		concept := concept{ID: metadata.ConceptId, Predicate: predicate}
-		ann = &annotation{Concept: concept}
+		c := concept{ID: metadata.ConceptId, Predicate: predicate}
+		ann = &annotation{Concept: c}
 	}
 
 	return ann
