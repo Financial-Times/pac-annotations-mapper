@@ -141,7 +141,7 @@ func TestMessageMapped(t *testing.T) {
 
 	for _, ann := range actualAnnotations {
 		switch ann.Concept.Predicate {
-		case "isClassifiedBy":
+		case "hasBrand":
 			assert.Equal(t, brandUuid, ann.Concept.ID, "brand annotation")
 			foundBrand = true
 

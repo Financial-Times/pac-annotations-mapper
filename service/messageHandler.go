@@ -16,7 +16,7 @@ const mapperEvent = "Map"
 const annotationsType = "Annotations"
 
 var predicates = map[string]string{
-	"http://www.ft.com/ontology/classification/isClassifiedBy": "isClassifiedBy",
+	"http://www.ft.com/ontology/classification/isClassifiedBy": "hasBrand",
 	"http://www.ft.com/ontology/implicitlyClassifiedBy":        "implicitlyClassifiedBy",
 	"http://www.ft.com/ontology/annotation/hasAuthor":          "hasAuthor",
 	"http://www.ft.com/ontology/hasContributor":                "hasContributor",
@@ -110,8 +110,14 @@ func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnot
 	var ann *annotation
 
 	if predicate, found := predicates[metadata.Predicate]; found {
-		concept := concept{ID: metadata.ConceptId, Predicate: predicate}
-		ann = &annotation{Concept: concept}
+		// if metadata.Predicate == "http://www.ft.com/ontology/classification/isClassifiedBy" {
+		// 	concept := concept{ID: metadata.ConceptId, Predicate: predicate}
+		// 	ann = &annotation{Concept: concept}
+		// }
+		// else {
+			concept := concept{ID: metadata.ConceptId, Predicate: predicate}
+			ann = &annotation{Concept: concept}
+		//}
 	}
 
 	return ann
