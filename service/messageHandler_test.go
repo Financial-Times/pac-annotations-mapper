@@ -20,7 +20,7 @@ const (
 	testSystemId = "http://cmdb.ft.com/systems/test-system"
 	testTxId     = "tid_testing"
 
-	hasBrand               = "http://www.ft.com/ontology/classification/isClassifiedBy"
+	hasBrand               = "http://www.ft.com/ontology/hasBrand"
 	mentions               = "http://www.ft.com/ontology/annotation/mentions"
 	implicitlyClassifiedBy = "http://www.ft.com/ontology/implicitlyClassifiedBy"
 	hasAuthor              = "http://www.ft.com/ontology/annotation/hasAuthor"
