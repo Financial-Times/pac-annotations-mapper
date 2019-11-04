@@ -5,7 +5,7 @@
 Mapper for transforming PAC annotations to UPP annotations
 
 * Reads PAC metadata for an article from the Kafka topic _NativeCmsMetadataPublicationEvents_
-* Metadata for sources different than "<http://cmdb.ft.com/systems/pac"> is skipped by this mapper
+* Metadata for sources different than "<http://cmdb.ft.com/systems/pac>" is skipped by this mapper
 * Filters and transforms it to UPP standard JSON representation
 * Writes the result onto the Kafka topic _ConceptAnnotations_
 
