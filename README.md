@@ -57,6 +57,6 @@ This service has __NO__ service endpoints.
 
 The healthcheck endpoints are:
 
- /__gtg
- /__health
- /__build-info
+* /__gtg
+* /__health
+* /__build-info
