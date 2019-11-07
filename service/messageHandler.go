@@ -111,8 +111,12 @@ func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnot
 	var ann *annotation
 
 	if predicate, found := predicates[metadata.Predicate]; found {
-		c := concept{ID: metadata.ConceptId, Predicate: predicate}
-		ann = &annotation{Concept: c}
+		ann = &annotation{
+			Concept: concept{
+				ID:        metadata.ConceptId,
+				Predicate: predicate,
+			},
+		}
 	}
 
 	return ann
