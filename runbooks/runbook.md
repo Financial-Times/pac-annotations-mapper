@@ -14,27 +14,6 @@ Platinum
 
 Production
 
-## Delivered By
-
-content
-
-## Supported By
-
-content
-
-## Known About By
-
-- elitsa.pavlova
-- kalin.arsov
-- miroslav.gatsanoga
-- ivan.nikolov
-- marina.chompalova
-- mihail.mihaylov
-- boyko.boykov
-- donislav.belev
-- dimitar.terziev
-
-
 ## Host Platform
 
 AWS
@@ -57,10 +36,6 @@ No
 ## Contains Sensitive Data
 
 No
-
-## Dependencies
-
-- upp-kafka
 
 ## Failover Architecture Type
 
