@@ -7,7 +7,7 @@ import (
 
 	log "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/kafka-client-go/kafka"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 const messageTimestampDateFormat = "2006-01-02T15:04:05.000Z"
@@ -124,7 +124,7 @@ func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnot
 
 func buildMappedAnnotationsHeader(publishEventHeaders map[string]string) map[string]string {
 	return map[string]string{
-		"Message-Id":        uuid.NewV4().String(),
+		"Message-Id":        uuid.NewString(),
 		"Message-Type":      "concept-annotation",
 		"Content-Type":      publishEventHeaders["Content-Type"],
 		"X-Request-Id":      publishEventHeaders["X-Request-Id"],

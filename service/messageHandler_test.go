@@ -10,7 +10,7 @@ import (
 
 	logTest "github.com/Financial-Times/go-logger/test"
 	"github.com/Financial-Times/kafka-client-go/kafka"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -44,7 +44,7 @@ func TestMessageMapped(t *testing.T) {
 	hook := logTest.NewTestHook("test")
 	whitelist := regexp.MustCompile(strings.Replace(testSystemID, ".", `\.`, -1))
 
-	contentUUID := uuid.NewV4().String()
+	contentUUID := uuid.NewString()
 	tests := map[string]struct {
 		PredicateURI    string
 		PredicateMapped string
@@ -95,7 +95,7 @@ func TestMessageMapped(t *testing.T) {
 
 			service := NewAnnotationMapperService(whitelist, mp)
 
-			annotationID := uuid.NewV4().String()
+			annotationID := uuid.NewString()
 			inbound := kafka.FTMessage{
 				Headers: map[string]string{
 					"Origin-System-Id": testSystemID,
@@ -195,7 +195,7 @@ func TestMessageProducerError(t *testing.T) {
 
 	service := NewAnnotationMapperService(whitelist, mp)
 
-	contentUUID := uuid.NewV4().String()
+	contentUUID := uuid.NewString()
 	inbound := kafka.FTMessage{
 		Headers: map[string]string{
 			"Origin-System-Id": testSystemID,
