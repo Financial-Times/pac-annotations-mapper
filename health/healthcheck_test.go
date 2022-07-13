@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Financial-Times/kafka-client-go/kafka"
+	"github.com/Financial-Times/kafka-client-go/v3"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,12 +21,14 @@ func (mc mockConsumer) ConnectivityCheck() error {
 	return mc.err
 }
 
-func (mc mockConsumer) StartListening(messageHandler func(message kafka.FTMessage) error) {
-	return
+func (mc mockConsumer) MonitorCheck() error {
+	return mc.err
 }
 
-func (mc mockConsumer) Shutdown() {
-	return
+func (mc mockConsumer) Start(messageHandler func(message kafka.FTMessage)) {
+}
+
+func (mc mockConsumer) Close() {
 }
 
 func (mp mockProducer) SendMessage(message kafka.FTMessage) error {
@@ -37,7 +39,7 @@ func (mp mockProducer) ConnectivityCheck() error {
 	return mp.connectivityErr
 }
 
-func (mp mockProducer) Shutdown() {
+func (mp mockProducer) Close() {
 }
 
 func TestHappyHealthCheck(t *testing.T) {

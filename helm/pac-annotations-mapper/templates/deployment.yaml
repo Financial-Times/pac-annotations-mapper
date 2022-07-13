@@ -39,16 +39,13 @@ spec:
           value: {{ .Values.env.CONSUMER_TOPIC }}
         - name: PRODUCER_TOPIC
           value: {{ .Values.env.PRODUCER_TOPIC }}
-        - name: ZOOKEEPER_ADDRESS
+        - name: KAFKA_LAG_TOLERANCE
+          value: { { .Values.env.KAFKA_LAG_TOLERANCE } }
+        - name: KAFKA_ADDRESS
           valueFrom:
             configMapKeyRef:
               name: global-config
-              key: zookeeper.url
-        - name: BROKER_ADDRESS
-          valueFrom:
-            configMapKeyRef:
-              name: global-config
-              key: kafka.url
+              key: msk.kafka.broker.url
         ports:
         - containerPort: 8080
         livenessProbe:
