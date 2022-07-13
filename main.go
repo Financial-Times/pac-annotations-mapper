@@ -10,8 +10,8 @@ import (
 	"time"
 
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
-	log "github.com/Financial-Times/go-logger"
-	"github.com/Financial-Times/kafka-client-go/kafka"
+	"github.com/Financial-Times/go-logger/v2"
+	"github.com/Financial-Times/kafka-client-go/v3"
 	"github.com/Financial-Times/pac-annotations-mapper/health"
 	"github.com/Financial-Times/pac-annotations-mapper/service"
 	status "github.com/Financial-Times/service-status-go/httphandlers"
@@ -33,14 +33,20 @@ func main() {
 		Desc:   "Port to listen on",
 		EnvVar: "APP_PORT",
 	})
-
-	// Kafka consumer config
-	zookeeperAddress := app.String(cli.StringOpt{
-		Name:   "zookeeperAddress",
-		Value:  "localhost:2181",
-		Desc:   "Addresses used by the queue consumer to connect to the queue",
-		EnvVar: "ZOOKEEPER_ADDRESS",
+	logLevel := app.String(cli.StringOpt{
+		Name:   "logLevel",
+		Value:  "INFO",
+		Desc:   "Log level",
+		EnvVar: "LOG_LEVEL",
 	})
+
+	kafkaAddress := app.String(cli.StringOpt{
+		Name:   "kafkaAddress",
+		Value:  "kafka:9092",
+		Desc:   "Addresses used by the kafka consumer and producer to connect to MSK",
+		EnvVar: "KAFKA_ADDRESS",
+	})
+	// Kafka consumer config
 	consumerGroup := app.String(cli.StringOpt{
 		Name:   "consumerGroup",
 		Value:  "pac-annotations-mapper",
@@ -53,21 +59,18 @@ func main() {
 		Desc:   "The topic to read the meassages from",
 		EnvVar: "CONSUMER_TOPIC",
 	})
-
+	kafkaLagTolerance := app.Int(cli.IntOpt{
+		Name:   "kafkaLagTolerance",
+		Value:  200,
+		Desc:   "Consumer offset lag tolerance.",
+		EnvVar: "KAFKA_LAG_TOLERANCE",
+	})
 	// message filter
 	whitelistRegex := app.String(cli.StringOpt{
 		Name:   "whitelistRegex",
 		Desc:   "The regex to use to filter messages based on Origin-System-Id.",
 		EnvVar: "WHITELIST_REGEX",
 		Value:  `http://cmdb\.ft\.com/systems/pac`,
-	})
-
-	// Kafka producer config
-	brokerAddress := app.String(cli.StringOpt{
-		Name:   "brokerAddress",
-		Value:  "localhost:9092",
-		Desc:   "Address used by the producer to connect to the queue",
-		EnvVar: "BROKER_ADDRESS",
 	})
 	producerTopic := app.String(cli.StringOpt{
 		Name:   "producerTopic",
@@ -76,26 +79,47 @@ func main() {
 		EnvVar: "PRODUCER_TOPIC",
 	})
 
-	log.InitDefaultLogger(appSystemCode)
-	log.Info("[Startup] pac-annotations-mapper is starting ")
+	log := logger.NewUPPLogger(appSystemCode, *logLevel)
 
 	app.Action = func() {
 		log.Infof("System code: %s, App Name: %s, Port: %s", appSystemCode, appName, *port)
 
 		whitelist, regexErr := regexp.Compile(*whitelistRegex)
 		if regexErr != nil {
-			log.Error("Please specify a valid whitelist ", regexErr)
+			log.WithError(regexErr).Error("Please specify a valid whitelist ")
 		}
 
-		messageProducer, _ := kafka.NewPerseverantProducer(*brokerAddress, *producerTopic, nil, 0, time.Minute)
+		producerConfig := kafka.ProducerConfig{
+			BrokersConnectionString: *kafkaAddress,
+			Topic:                   *producerTopic,
+			Options:                 kafka.DefaultProducerOptions(),
+		}
+		messageProducer := kafka.NewProducer(producerConfig, log)
+		defer func() {
+			log.Info("Shutting down kafka producer")
+			messageProducer.Close()
+		}()
 
-		mapper := service.NewAnnotationMapperService(whitelist, messageProducer)
+		mapper := service.NewAnnotationMapperService(whitelist, messageProducer, log)
 
-		messageConsumer, _ := kafka.NewPerseverantConsumer(*zookeeperAddress, *consumerGroup, []string{*consumerTopic}, kafka.DefaultConsumerConfig(), time.Minute, nil)
+		kafkaConsumerTopic := []*kafka.Topic{
+			kafka.NewTopic(*consumerTopic, kafka.WithLagTolerance(int64(*kafkaLagTolerance))),
+		}
 
-		go serveEndpoints(*port, messageConsumer, messageProducer, regexErr)
+		consumerConfig := kafka.ConsumerConfig{
+			BrokersConnectionString: *kafkaAddress,
+			ConsumerGroup:           *consumerGroup,
+			Options:                 kafka.DefaultConsumerOptions(),
+		}
+		messageConsumer := kafka.NewConsumer(consumerConfig, kafkaConsumerTopic, log)
 
-		go messageConsumer.StartListening(mapper.HandleMessage)
+		go serveEndpoints(*port, *messageConsumer, *messageProducer, regexErr, log)
+
+		go messageConsumer.Start(mapper.HandleMessage)
+		defer func() {
+			log.Info("Shutting down kafka consumer")
+			messageConsumer.Close()
+		}()
 
 		waitForSignal()
 	}
@@ -106,8 +130,8 @@ func main() {
 	}
 }
 
-func serveEndpoints(port string, consumer kafka.Consumer, producer kafka.Producer, whitelistErr error) {
-	healthService := health.NewHealthCheck(appSystemCode, appName, appDescription, whitelistErr, consumer, producer)
+func serveEndpoints(port string, consumer kafka.Consumer, producer kafka.Producer, whitelistErr error, log *logger.UPPLogger) {
+	healthService := health.NewHealthCheck(appSystemCode, appName, appDescription, whitelistErr, &consumer, &producer)
 
 	serveMux := http.NewServeMux()
 

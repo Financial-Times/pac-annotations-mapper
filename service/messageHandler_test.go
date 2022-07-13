@@ -8,8 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	logTest "github.com/Financial-Times/go-logger/test"
-	"github.com/Financial-Times/kafka-client-go/kafka"
+	"github.com/Financial-Times/go-logger/v2"
+
+	"github.com/Financial-Times/kafka-client-go/v3"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -24,24 +25,26 @@ const (
 type mockMessageProducer struct {
 	mock.Mock
 	received []kafka.FTMessage
+	err      error
 }
 
 func (p *mockMessageProducer) SendMessage(message kafka.FTMessage) error {
 	args := p.Called(message)
 	p.received = append(p.received, message)
-	return args.Error(0)
+	p.err = args.Error(0)
+	return p.err
 }
 
 func (p *mockMessageProducer) ConnectivityCheck() error {
 	return nil
 }
 
-func (p *mockMessageProducer) Shutdown() {
-
+func (p *mockMessageProducer) Close() error {
+	return nil
 }
 
 func TestMessageMapped(t *testing.T) {
-	hook := logTest.NewTestHook("test")
+	log := logger.NewUnstructuredLogger()
 	whitelist := regexp.MustCompile(strings.Replace(testSystemID, ".", `\.`, -1))
 
 	contentUUID := uuid.NewString()
@@ -93,7 +96,7 @@ func TestMessageMapped(t *testing.T) {
 			mp := &mockMessageProducer{}
 			mp.On("SendMessage", mock.AnythingOfType("kafka.FTMessage")).Return(nil)
 
-			service := NewAnnotationMapperService(whitelist, mp)
+			service := NewAnnotationMapperService(whitelist, mp, log)
 
 			annotationID := uuid.NewString()
 			inbound := kafka.FTMessage{
@@ -112,16 +115,14 @@ func TestMessageMapped(t *testing.T) {
 				]
 				}`, contentUUID, test.PredicateURI, annotationID),
 			}
-			err := service.HandleMessage(inbound)
-			assert.NoError(t, err)
-			mp.AssertExpectations(t)
+			service.HandleMessage(inbound)
 			require.Len(t, mp.received, 1, "messages sent to producer")
 
 			actual := mp.received[0]
 			assert.Equal(t, testTxID, actual.Headers["X-Request-Id"], "transaction_id should be propagated")
 
 			actualBody := MappedAnnotations{}
-			err = json.NewDecoder(strings.NewReader(actual.Body)).Decode(&actualBody)
+			err := json.NewDecoder(strings.NewReader(actual.Body)).Decode(&actualBody)
 			assert.NoError(t, err)
 
 			assert.Equal(t, contentUUID, actualBody.UUID, "content uuid")
@@ -144,56 +145,46 @@ func TestMessageMapped(t *testing.T) {
 
 		})
 	}
-	logTest.Assert(t, hook.LastEntry()).
-		HasMonitoringEvent("Map", testTxID, "Annotations").
-		HasValidFlag(true).
-		HasUUID(contentUUID)
-
 }
 
 func TestSourceNonMatchingWhitelistIsIgnored(t *testing.T) {
-	logTest.NewTestHook("test")
+	log := logger.NewUnstructuredLogger()
 	whitelist := regexp.MustCompile(`"http://www\.example\.com/ft-system`)
 	mp := &mockMessageProducer{}
-	service := NewAnnotationMapperService(whitelist, mp)
+	service := NewAnnotationMapperService(whitelist, mp, log)
 	inbound := kafka.FTMessage{
 		Headers: map[string]string{"Origin-System-Id": testSystemID},
 		Body:    `{"foo":"bar"}`,
 	}
 
-	actual := service.HandleMessage(inbound)
-	assert.NoError(t, actual)
+	service.HandleMessage(inbound)
+	assert.Empty(t, mp.received)
 	mp.AssertExpectations(t)
 }
 
 func TestSyntacticallyInvalidJsonIsRejected(t *testing.T) {
-	hook := logTest.NewTestHook("test")
+	log := logger.NewUnstructuredLogger()
 	whitelist := regexp.MustCompile(strings.Replace(testSystemID, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
-	service := NewAnnotationMapperService(whitelist, mp)
+	service := NewAnnotationMapperService(whitelist, mp, log)
 	inbound := kafka.FTMessage{
 		Headers: map[string]string{"Origin-System-Id": testSystemID},
 		Body:    `{"foo":"bar"`,
 	}
 
-	actual := service.HandleMessage(inbound)
-	assert.Error(t, actual)
+	service.HandleMessage(inbound)
+	assert.Empty(t, mp.received)
 	mp.AssertExpectations(t)
-
-	// check of monitoring logging
-	logTest.Assert(t, hook.LastEntry()).
-		HasMonitoringEvent("Map", "unknown", "Annotations").
-		HasValidFlag(false)
 }
 
 func TestMessageProducerError(t *testing.T) {
-	hook := logTest.NewTestHook("test")
-	errmsg := "test error"
+	log := logger.NewUnstructuredLogger()
+	errmsg := errors.New("test error")
 	whitelist := regexp.MustCompile(strings.Replace(testSystemID, ".", `\.`, -1))
 	mp := &mockMessageProducer{}
-	mp.On("SendMessage", mock.AnythingOfType("kafka.FTMessage")).Return(errors.New(errmsg))
+	mp.On("SendMessage", mock.AnythingOfType("kafka.FTMessage")).Return(errmsg)
 
-	service := NewAnnotationMapperService(whitelist, mp)
+	service := NewAnnotationMapperService(whitelist, mp, log)
 
 	contentUUID := uuid.NewString()
 	inbound := kafka.FTMessage{
@@ -213,32 +204,23 @@ func TestMessageProducerError(t *testing.T) {
 		}`, contentUUID),
 	}
 
-	err := service.HandleMessage(inbound)
-	assert.EqualError(t, err, errmsg)
+	service.HandleMessage(inbound)
 
 	mp.AssertExpectations(t)
-
-	// check of monitoring logging
-	logTest.Assert(t, hook.LastEntry()).
-		HasMonitoringEvent("Map", testTxID, "Annotations").
-		HasValidFlag(true).
-		HasUUID(contentUUID)
+	assert.Equal(t, errmsg, mp.err)
 }
 
 func TestNilWhitelistIsIgnoredWithErrorLog(t *testing.T) {
-	hook := logTest.NewTestHook("test")
+	log := logger.NewUnstructuredLogger()
 	mp := &mockMessageProducer{}
-	service := NewAnnotationMapperService(nil, mp)
+	service := NewAnnotationMapperService(nil, mp, log)
 	inbound := kafka.FTMessage{
 		Headers: map[string]string{"Origin-System-Id": testSystemID},
 		Body:    `{"foo":"bar"}`,
 	}
 
-	actual := service.HandleMessage(inbound)
-	assert.NoError(t, actual)
+	service.HandleMessage(inbound)
 	mp.AssertExpectations(t)
 
-	actualLog := hook.LastEntry()
-	assert.Equal(t, "Skipping this message because the whitelist is invalid.", actualLog.Message, "log message")
-	assert.Equal(t, "error", actualLog.Level.String(), "log level")
+	assert.Empty(t, mp.received)
 }
