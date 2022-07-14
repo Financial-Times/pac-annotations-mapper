@@ -3,6 +3,8 @@ package health
 import (
 	"net/http"
 
+	"github.com/Financial-Times/kafka-client-go/v3"
+
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
 	"github.com/Financial-Times/service-status-go/gtg"
 )
@@ -101,7 +103,7 @@ func (h *HealthCheck) kafkaConsumerMonitoringCheck() fthealth.Check {
 		Name:             "Check Kafka consumer status",
 		Severity:         3,
 		BusinessImpact:   "Consumer is lagging behind when reading messages. Ingestion is delayed.",
-		TechnicalSummary: "Messages awaiting handling exceed the configured lag tolerance. Check if Kafka consumer is stuck.",
+		TechnicalSummary: kafka.LagTechnicalSummary,
 		PanicGuide:       "https://runbooks.in.ft.com/pac-annotations-mapper",
 		Checker:          h.kafkaMonitoringChecker,
 	}

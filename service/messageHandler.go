@@ -29,8 +29,6 @@ var predicates = map[string]string{
 
 type kafkaProducer interface {
 	SendMessage(message kafka.FTMessage) error
-	Close() error
-	ConnectivityCheck() error
 }
 
 type AnnotationMapperService struct {
