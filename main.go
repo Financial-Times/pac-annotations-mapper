@@ -113,13 +113,13 @@ func main() {
 		}
 		messageConsumer := kafka.NewConsumer(consumerConfig, kafkaConsumerTopic, log)
 
-		go serveEndpoints(*port, *messageConsumer, *messageProducer, regexErr, log)
-
 		go messageConsumer.Start(mapper.HandleMessage)
 		defer func() {
 			log.Info("Shutting down kafka consumer")
 			messageConsumer.Close()
 		}()
+
+		go serveEndpoints(*port, *messageConsumer, *messageProducer, regexErr, log)
 
 		waitForSignal()
 	}
