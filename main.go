@@ -172,7 +172,7 @@ func serveEndpoints(port string, healthService *health.HealthCheck, log *logger.
 }
 
 func waitForSignal() {
-	ch := make(chan os.Signal)
+	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
 }
