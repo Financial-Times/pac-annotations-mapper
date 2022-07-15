@@ -119,7 +119,9 @@ func main() {
 			messageConsumer.Close()
 		}()
 
-		go serveEndpoints(*port, *messageConsumer, *messageProducer, regexErr, log)
+		healthService := health.NewHealthCheck(appSystemCode, appName, appDescription, regexErr, messageConsumer, messageProducer)
+
+		go serveEndpoints(*port, healthService, log)
 
 		waitForSignal()
 	}
@@ -130,9 +132,7 @@ func main() {
 	}
 }
 
-func serveEndpoints(port string, consumer kafka.Consumer, producer kafka.Producer, whitelistErr error, log *logger.UPPLogger) {
-	healthService := health.NewHealthCheck(appSystemCode, appName, appDescription, whitelistErr, &consumer, &producer)
-
+func serveEndpoints(port string, healthService *health.HealthCheck, log *logger.UPPLogger) {
 	serveMux := http.NewServeMux()
 
 	hc := fthealth.TimedHealthCheck{

@@ -51,7 +51,7 @@ func (h *HealthCheck) Health() func(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HealthCheck) Checks() []fthealth.Check {
-	checks := []fthealth.Check{}
+	var checks []fthealth.Check
 	if h.whitelistError != nil {
 		checks = append(checks, h.whitelistCheck())
 	}
