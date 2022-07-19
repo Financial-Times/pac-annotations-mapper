@@ -3,23 +3,33 @@ package health
 import (
 	"net/http"
 
+	"github.com/Financial-Times/kafka-client-go/v3"
+
 	fthealth "github.com/Financial-Times/go-fthealth/v1_1"
-	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/Financial-Times/service-status-go/gtg"
 )
 
 const HealthPath = "/__health"
+
+type kafkaConsumer interface {
+	ConnectivityCheck() error
+	MonitorCheck() error
+}
+
+type kafkaProducer interface {
+	ConnectivityCheck() error
+}
 
 type HealthCheck struct {
 	appSystemCode  string
 	appName        string
 	appDescription string
 	whitelistError error
-	consumer       kafka.Consumer
-	producer       kafka.Producer
+	consumer       kafkaConsumer
+	producer       kafkaProducer
 }
 
-func NewHealthCheck(appSystemCode string, appName string, appDescription string, whitelistErr error, c kafka.Consumer, p kafka.Producer) *HealthCheck {
+func NewHealthCheck(appSystemCode string, appName string, appDescription string, whitelistErr error, c kafkaConsumer, p kafkaProducer) *HealthCheck {
 	return &HealthCheck{
 		appSystemCode:  appSystemCode,
 		appName:        appName,
@@ -41,11 +51,11 @@ func (h *HealthCheck) Health() func(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HealthCheck) Checks() []fthealth.Check {
-	checks := []fthealth.Check{}
+	var checks []fthealth.Check
 	if h.whitelistError != nil {
 		checks = append(checks, h.whitelistCheck())
 	}
-	checks = append(checks, h.readQueueCheck(), h.writeQueueCheck())
+	checks = append(checks, h.readQueueCheck(), h.writeQueueCheck(), h.kafkaConsumerMonitoringCheck())
 	return checks
 }
 
@@ -87,6 +97,18 @@ func (h *HealthCheck) writeQueueCheck() fthealth.Check {
 	}
 }
 
+func (h *HealthCheck) kafkaConsumerMonitoringCheck() fthealth.Check {
+	return fthealth.Check{
+		ID:               "kafka-consumer-lag-check",
+		Name:             "Check Kafka consumer status",
+		Severity:         3,
+		BusinessImpact:   "Consumer is lagging behind when reading messages. Ingestion is delayed.",
+		TechnicalSummary: kafka.LagTechnicalSummary,
+		PanicGuide:       "https://runbooks.in.ft.com/pac-annotations-mapper",
+		Checker:          h.kafkaMonitoringChecker,
+	}
+}
+
 func (h *HealthCheck) GTG() gtg.Status {
 	consumerCheck := func() gtg.Status {
 		return gtgCheck(h.checkKafkaConsumerConnectivity)
@@ -120,4 +142,11 @@ func (h *HealthCheck) checkKafkaProducerConnectivity() (string, error) {
 		return "Error connecting with Kafka", err
 	}
 	return "Successfully connected to Kafka", nil
+}
+
+func (h *HealthCheck) kafkaMonitoringChecker() (string, error) {
+	if err := h.consumer.MonitorCheck(); err != nil {
+		return "", err
+	}
+	return "Kafka consumer status is healthy", nil
 }

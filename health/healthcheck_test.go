@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Financial-Times/kafka-client-go/kafka"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,23 +20,12 @@ func (mc mockConsumer) ConnectivityCheck() error {
 	return mc.err
 }
 
-func (mc mockConsumer) StartListening(messageHandler func(message kafka.FTMessage) error) {
-	return
-}
-
-func (mc mockConsumer) Shutdown() {
-	return
-}
-
-func (mp mockProducer) SendMessage(message kafka.FTMessage) error {
-	return nil
+func (mc mockConsumer) MonitorCheck() error {
+	return mc.err
 }
 
 func (mp mockProducer) ConnectivityCheck() error {
 	return mp.connectivityErr
-}
-
-func (mp mockProducer) Shutdown() {
 }
 
 func TestHappyHealthCheck(t *testing.T) {
@@ -62,6 +50,18 @@ func TestHealthCheckWithUnhappyConsumer(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code, "It should return HTTP 200 OK")
 	assert.Contains(t, w.Body.String(), `"name":"Read Message Queue Reachable","ok":false`, "Read message queue healthcheck should be unhappy")
+}
+
+func TestHealthCheckWithLaggingConsumer(t *testing.T) {
+	hc := HealthCheck{"test-system-code", "test-app-name", "test-app-desc", nil, mockConsumer{errors.New("consumer is lagging")}, mockProducer{}}
+
+	req := httptest.NewRequest("GET", "http://example.com/__health", nil)
+	w := httptest.NewRecorder()
+
+	hc.Health()(w, req)
+
+	assert.Equal(t, 200, w.Code, "It should return HTTP 200 OK")
+	assert.Contains(t, w.Body.String(), `"name":"Check Kafka consumer status","ok":false`, "Consumer lagcheck should be reported as lagging")
 }
 
 func TestHealthCheckWithUnhappyProducer(t *testing.T) {

@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"time"
 
-	log "github.com/Financial-Times/go-logger"
-	"github.com/Financial-Times/kafka-client-go/kafka"
+	"github.com/Financial-Times/go-logger/v2"
+
+	"github.com/Financial-Times/kafka-client-go/v3"
 	"github.com/google/uuid"
 )
 
@@ -26,41 +27,46 @@ var predicates = map[string]string{
 	"http://www.ft.com/ontology/annotation/mentions":           "mentions",
 }
 
+type kafkaProducer interface {
+	SendMessage(message kafka.FTMessage) error
+}
+
 type AnnotationMapperService struct {
 	whitelist       *regexp.Regexp
-	messageProducer kafka.Producer
+	messageProducer kafkaProducer
+	log             *logger.UPPLogger
 }
 
-func NewAnnotationMapperService(whitelist *regexp.Regexp, messageProducer kafka.Producer) *AnnotationMapperService {
-	return &AnnotationMapperService{whitelist, messageProducer}
+func NewAnnotationMapperService(whitelist *regexp.Regexp, messageProducer kafkaProducer, log *logger.UPPLogger) *AnnotationMapperService {
+	return &AnnotationMapperService{whitelist, messageProducer, log}
 }
 
-func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error {
+func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) {
 	tid, found := msg.Headers["X-Request-Id"]
 	if !found {
 		tid = "unknown"
 	}
 
-	requestLog := log.WithTransactionID(tid)
+	requestLog := mapper.log.WithTransactionID(tid)
 	if mapper.whitelist == nil {
 		requestLog.Error("Skipping this message because the whitelist is invalid.")
-		return nil
+		return
 	}
 
 	systemCode := msg.Headers["Origin-System-Id"]
 	if !mapper.whitelist.MatchString(systemCode) {
 		requestLog.Infof("Skipping annotations published with Origin-System-Id \"%v\". It does not match the configured whitelist.", systemCode)
-		return nil
+		return
 	}
 
 	var metadataPublishEvent PacMetadataPublishEvent
 	err := json.Unmarshal([]byte(msg.Body), &metadataPublishEvent)
 	if err != nil {
-		log.WithMonitoringEvent(mapperEvent, tid, annotationsType).
+		mapper.log.WithMonitoringEvent(mapperEvent, tid, annotationsType).
 			WithValidFlag(false).
 			WithError(err).
 			Error("Cannot unmarshal message body")
-		return err
+		return
 	}
 
 	requestLog = requestLog.WithUUID(metadataPublishEvent.UUID)
@@ -80,31 +86,30 @@ func (mapper *AnnotationMapperService) HandleMessage(msg kafka.FTMessage) error 
 
 	marshalledAnnotations, err := json.Marshal(mappedAnnotations)
 	if err != nil {
-		log.WithMonitoringEvent(mapperEvent, tid, annotationsType).
+		mapper.log.WithMonitoringEvent(mapperEvent, tid, annotationsType).
 			WithUUID(metadataPublishEvent.UUID).
 			WithValidFlag(true).
 			WithError(err).
 			Error("Error marshalling the concept annotations")
-		return err
+		return
 	}
 
 	var headers = buildMappedAnnotationsHeader(msg.Headers)
 	message := kafka.FTMessage{Headers: headers, Body: string(marshalledAnnotations)}
 	err = mapper.messageProducer.SendMessage(message)
 	if err != nil {
-		log.WithMonitoringEvent(mapperEvent, tid, annotationsType).
+		mapper.log.WithMonitoringEvent(mapperEvent, tid, annotationsType).
 			WithUUID(metadataPublishEvent.UUID).
 			WithValidFlag(true).
 			WithError(err).
 			Error("Error sending concept annotations to queue")
-		return err
+		return
 	}
 
-	log.WithMonitoringEvent(mapperEvent, tid, annotationsType).
+	mapper.log.WithMonitoringEvent(mapperEvent, tid, annotationsType).
 		WithUUID(metadataPublishEvent.UUID).
 		WithValidFlag(true).
 		Info("Sent annotation message to queue")
-	return nil
 }
 
 func (mapper *AnnotationMapperService) buildAnnotation(metadata PacMetadataAnnotation) *annotation {
